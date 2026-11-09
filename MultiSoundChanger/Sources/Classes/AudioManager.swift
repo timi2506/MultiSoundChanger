@@ -19,8 +19,10 @@ protocol AudioManager: class {
     func setSelectedDeviceVolume(masterChannelLevel: Float, leftChannelLevel: Float, rightChannelLevel: Float)
     func isSelectedDeviceMuted() -> Bool
     func toggleMute()
-    
+
     var isMuted: Bool { get }
+    var onVolumeChanged: ((Float) -> Void)? { get set }
+    var onDefaultDeviceChanged: ((AudioDeviceID) -> Void)? { get set }
 }
 
 // MARK: - Implementation
@@ -29,30 +31,45 @@ final class AudioManagerImpl: AudioManager {
     private let audio: Audio = AudioImpl()
     private let devices: [AudioDeviceID: String]?
     private var selectedDevice: AudioDeviceID?
-    
+
+    var onVolumeChanged: ((Float) -> Void)?
+    var onDefaultDeviceChanged: ((AudioDeviceID) -> Void)?
+
+    private var observedDevices: [AudioDeviceID] = []
+    private var deviceListenerBlock: AudioObjectPropertyListenerBlock?
+    private var systemListenerBlock: AudioObjectPropertyListenerBlock?
+
     init() {
         devices = audio.getOutputDevices()
         printDevices()
+        setupSystemListener()
     }
-    
+
+    deinit {
+        removeSystemListener()
+        removeDeviceListeners()
+    }
+
     func getDefaultOutputDevice() -> AudioDeviceID {
         return audio.getDefaultOutputDevice()
     }
-    
+
     func getOutputDevices() -> [AudioDeviceID: String]? {
         return devices
     }
-    
+
     func isAggregateDevice(deviceID: AudioDeviceID) -> Bool {
         return audio.isAggregateDevice(deviceID: deviceID)
     }
-    
+
     func selectDevice(deviceID: AudioDeviceID) {
+        removeDeviceListeners()
         selectedDevice = deviceID
         audio.setOutputDevice(newDeviceID: deviceID)
+        setupDeviceListeners(for: deviceID)
         Logger.debug(Constants.InnerMessages.selectDevice(deviceID: String(deviceID)))
     }
-    
+
     func getSelectedDeviceVolume() -> Float? {
         guard let selectedDevice = selectedDevice else {
             return nil
@@ -162,4 +179,103 @@ final class AudioManagerImpl: AudioManager {
             Logger.debug(Constants.InnerMessages.debugDevice(deviceID: String(device.key), deviceName: device.value))
         }
     }
+
+    private func setupSystemListener() {
+        var address = AudioObjectPropertyAddress(
+            mSelector: AudioObjectPropertySelector(kAudioHardwarePropertyDefaultOutputDevice),
+            mScope: AudioObjectPropertyScope(kAudioObjectPropertyScopeGlobal),
+            mElement: AudioObjectPropertyElement(kAudioObjectPropertyElementMaster)
+        )
+
+        systemListenerBlock = { [weak self] _, _ in
+            guard let self = self else { return }
+            let newDevice = self.getDefaultOutputDevice()
+            self.onDefaultDeviceChanged?(newDevice)
+        }
+
+        AudioObjectAddPropertyListenerBlock(
+            AudioObjectID(kAudioObjectSystemObject),
+            &address,
+            DispatchQueue.main,
+            systemListenerBlock!
+        )
+    }
+
+    private func removeSystemListener() {
+        guard let systemListenerBlock = systemListenerBlock else { return }
+        var address = AudioObjectPropertyAddress(
+            mSelector: AudioObjectPropertySelector(kAudioHardwarePropertyDefaultOutputDevice),
+            mScope: AudioObjectPropertyScope(kAudioObjectPropertyScopeGlobal),
+            mElement: AudioObjectPropertyElement(kAudioObjectPropertyElementMaster)
+        )
+        AudioObjectRemovePropertyListenerBlock(
+            AudioObjectID(kAudioObjectSystemObject),
+            &address,
+            DispatchQueue.main,
+            systemListenerBlock
+        )
+    }
+
+    private func setupDeviceListeners(for deviceID: AudioDeviceID) {
+        let targets = isAggregateDevice(deviceID: deviceID)
+            ? audio.getAggregateDeviceSubDeviceList(deviceID: deviceID).filter { audio.isOutputDevice(deviceID: $0) }
+            : [deviceID]
+
+        observedDevices = targets
+
+        deviceListenerBlock = { [weak self] _, _ in
+            guard let self = self else { return }
+            guard let volume = self.getSelectedDeviceVolume() else { return }
+            let correctedVolume = self.isMuted ? 0 : volume * 100
+            self.onVolumeChanged?(correctedVolume)
+        }
+
+        for dev in targets {
+            addPropertyListeners(to: dev)
+        }
+    }
+
+    private func addPropertyListeners(to devID: AudioDeviceID) {
+        guard let block = deviceListenerBlock else { return }
+        let elements: [AudioObjectPropertyElement] = [0, 1, 2]
+        for elem in elements {
+            var volAddress = AudioObjectPropertyAddress(
+                mSelector: AudioObjectPropertySelector(kAudioDevicePropertyVolumeScalar),
+                mScope: AudioObjectPropertyScope(kAudioDevicePropertyScopeOutput),
+                mElement: elem
+            )
+            AudioObjectAddPropertyListenerBlock(devID, &volAddress, DispatchQueue.main, block)
+        }
+
+        var muteAddress = AudioObjectPropertyAddress(
+            mSelector: AudioObjectPropertySelector(kAudioDevicePropertyMute),
+            mScope: AudioObjectPropertyScope(kAudioDevicePropertyScopeOutput),
+            mElement: AudioObjectPropertyElement(kAudioObjectPropertyElementMaster)
+        )
+        AudioObjectAddPropertyListenerBlock(devID, &muteAddress, DispatchQueue.main, block)
+    }
+
+    private func removeDeviceListeners() {
+        guard let block = deviceListenerBlock else { return }
+        for dev in observedDevices {
+            let elements: [AudioObjectPropertyElement] = [0, 1, 2]
+            for elem in elements {
+                var volAddress = AudioObjectPropertyAddress(
+                    mSelector: AudioObjectPropertySelector(kAudioDevicePropertyVolumeScalar),
+                    mScope: AudioObjectPropertyScope(kAudioDevicePropertyScopeOutput),
+                    mElement: elem
+                )
+                AudioObjectRemovePropertyListenerBlock(dev, &volAddress, DispatchQueue.main, block)
+            }
+            var muteAddress = AudioObjectPropertyAddress(
+                mSelector: AudioObjectPropertySelector(kAudioDevicePropertyMute),
+                mScope: AudioObjectPropertyScope(kAudioDevicePropertyScopeOutput),
+                mElement: AudioObjectPropertyElement(kAudioObjectPropertyElementMaster)
+            )
+            AudioObjectRemovePropertyListenerBlock(dev, &muteAddress, DispatchQueue.main, block)
+        }
+        observedDevices.removeAll()
+        deviceListenerBlock = nil
+    }
 }
+

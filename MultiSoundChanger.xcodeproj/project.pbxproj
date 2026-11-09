@@ -27,6 +27,7 @@
 		F3925975262F2B8000B7AD62 /* ApplicationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3925974262F2B8000B7AD62 /* ApplicationController.swift */; };
 		F3925979262F2F9F00B7AD62 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3925978262F2F9F00B7AD62 /* Logger.swift */; };
 		F392597C2631ACE700B7AD62 /* Runner.swift in Sources */ = {isa = PBXBuildFile; fileRef = F392597B2631ACE700B7AD62 /* Runner.swift */; };
+		F3925981262F2B8000B7AD62 /* TouchBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3925980262F2B8000B7AD62 /* TouchBarController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -55,6 +56,7 @@
 		F3925974262F2B8000B7AD62 /* ApplicationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationController.swift; sourceTree = "<group>"; };
 		F3925978262F2F9F00B7AD62 /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 		F392597B2631ACE700B7AD62 /* Runner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Runner.swift; sourceTree = "<group>"; };
+		F3925980262F2B8000B7AD62 /* TouchBarController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TouchBarController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -161,6 +163,7 @@
 				F373D8B02561D1A600642274 /* StatusBarController.swift */,
 				F373D8B12561D1A600642274 /* AudioManager.swift */,
 				F373D8B22561D1A600642274 /* MediaManager.swift */,
+				F3925980262F2B8000B7AD62 /* TouchBarController.swift */,
 			);
 			path = Classes;
 			sourceTree = "<group>";
@@ -374,6 +377,7 @@
 				F3925979262F2F9F00B7AD62 /* Logger.swift in Sources */,
 				F373D8BB2561D21900642274 /* Stories.swift in Sources */,
 				F383684D2561E39E00C7B454 /* Constants.swift in Sources */,
+				F3925981262F2B8000B7AD62 /* TouchBarController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -442,7 +446,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				MACOSX_DEPLOYMENT_TARGET = 12.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
@@ -497,7 +501,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				MACOSX_DEPLOYMENT_TARGET = 12.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = macosx;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
@@ -514,14 +518,13 @@
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = "";
-				EXCLUDED_ARCHS = arm64;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)",
 				);
 				INFOPLIST_FILE = MultiSoundChanger/Other/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				MACOSX_DEPLOYMENT_TARGET = 12.0;
 				MARKETING_VERSION = 1.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.rlxone.multisoundchanger;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -540,14 +543,13 @@
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = "";
-				EXCLUDED_ARCHS = arm64;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)",
 				);
 				INFOPLIST_FILE = MultiSoundChanger/Other/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				MACOSX_DEPLOYMENT_TARGET = 12.0;
 				MARKETING_VERSION = 1.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.rlxone.multisoundchanger;
 				PRODUCT_NAME = "$(TARGET_NAME)";

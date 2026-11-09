@@ -29,6 +29,7 @@ enum Constants {
     
     enum Keys: String {
         case empty = ""
+        // swiftlint:disable:next identifier_name
         case q
     }
     
